@@ -16,10 +16,9 @@ export default function ExercisePlayer({ lesson, subjectKey, onComplete, difficu
   const [done, setDone] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const inputRef = useRef(null);
-  const hasSpeech = typeof window !== "undefined" && "speechSynthesis" in window;
 
   function speak(text, lang) {
-    if (!hasSpeech) return;
+    if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = lang;
@@ -213,7 +212,7 @@ export default function ExercisePlayer({ lesson, subjectKey, onComplete, difficu
         >
           {exercise.q}
         </p>
-        {hasSpeech && (() => {
+        {(() => {
           const isEnglish = exercise.type === "text" && /[a-zA-Z]/.test(exercise.q);
           return (
             <button
