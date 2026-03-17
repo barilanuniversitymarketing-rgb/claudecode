@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { CHILDREN } from "./data/children";
 import { SUBJECTS } from "./data/subjects";
 import { LEVELS } from "./data/levels";
@@ -8,12 +8,14 @@ import child2Math from "./data/curriculum/child2-math";
 import child2English from "./data/curriculum/child2-english";
 import { useProgress } from "./hooks/useProgress";
 import { useChildNames } from "./hooks/useChildNames";
-import { getSubjectStats, getChildStats } from "./utils/stats";
+import { getSubjectStats, getChildStats, getChildTotalXp } from "./utils/stats";
+import { getRankForXp } from "./data/gamification";
 import Header from "./components/Header";
 import ChildTabs from "./components/ChildTabs";
 import SubjectCard from "./components/SubjectCard";
 import LevelGroup from "./components/LevelGroup";
 import ExercisePlayer from "./components/ExercisePlayer";
+import LevelUpToast from "./components/LevelUpToast";
 
 const CURRICULA = {
   child1: { math: child1Math, english: child1English },
@@ -25,14 +27,34 @@ export default function App() {
   const [activeChild, setActiveChild] = useState("child1");
   const [activeSubject, setActiveSubject] = useState(null);
   const [activeLesson, setActiveLesson] = useState(null);
+  const [activeLevel, setActiveLevel] = useState(null);
+  const [levelUpRank, setLevelUpRank] = useState(null);
 
   const [progress, saveResult, resetProgress] = useProgress();
   const [getChildName, setChildName] = useChildNames();
+
+  const rankBeforeRef = useRef(null);
 
   const childStats = {
     child1: getChildStats("child1", progress),
     child2: getChildStats("child2", progress),
   };
+
+  const xpByChild = {
+    child1: getChildTotalXp("child1", progress),
+    child2: getChildTotalXp("child2", progress),
+  };
+
+  // Detect level-up after progress updates
+  useEffect(() => {
+    if (rankBeforeRef.current === null) return;
+    const rankBefore = rankBeforeRef.current;
+    const rankAfter = getRankForXp(getChildTotalXp(activeChild, progress));
+    if (rankAfter.minXp > rankBefore.minXp) {
+      setLevelUpRank(rankAfter);
+    }
+    rankBeforeRef.current = null;
+  }, [progress, activeChild]);
 
   function handleBack() {
     if (view === "lesson") setView("subject");
@@ -44,13 +66,15 @@ export default function App() {
     setView("subject");
   }
 
-  function handleSelectLesson(lesson) {
+  function handleSelectLesson(lesson, level) {
     setActiveLesson(lesson);
+    setActiveLevel(level);
     setView("lesson");
   }
 
   function handleLessonComplete(score, total) {
-    saveResult(activeChild, activeSubject, activeLesson.id, score, total);
+    rankBeforeRef.current = getRankForXp(getChildTotalXp(activeChild, progress));
+    saveResult(activeChild, activeSubject, activeLesson.id, score, total, activeLevel);
   }
 
   function handleReset() {
@@ -99,6 +123,7 @@ export default function App() {
                 getChildName={getChildName}
                 setChildName={setChildName}
                 stats={childStats}
+                xpByChild={xpByChild}
               />
               <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
                 {Object.keys(SUBJECTS).map((key, i) => (
@@ -207,6 +232,7 @@ export default function App() {
                 lesson={activeLesson}
                 subjectKey={activeSubject}
                 onComplete={handleLessonComplete}
+                difficulty={activeLevel}
               />
               <div style={{ marginTop: 24, textAlign: "center" }}>
                 <button
@@ -231,6 +257,10 @@ export default function App() {
           )}
         </div>
       </div>
+
+      {levelUpRank && (
+        <LevelUpToast rank={levelUpRank} onDismiss={() => setLevelUpRank(null)} />
+      )}
     </div>
   );
 }

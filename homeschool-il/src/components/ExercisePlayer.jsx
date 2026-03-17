@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { SUBJECTS } from "../data/subjects";
 import ProgressBar from "./ProgressBar";
 import StarRating from "./StarRating";
+import { getXpForLesson } from "../data/gamification";
 
-export default function ExercisePlayer({ lesson, subjectKey, onComplete }) {
+export default function ExercisePlayer({ lesson, subjectKey, onComplete, difficulty }) {
   const subject = SUBJECTS[subjectKey];
   const exercises = lesson.exercises;
   const total = exercises.length;
@@ -113,6 +114,19 @@ export default function ExercisePlayer({ lesson, subjectKey, onComplete }) {
         <div style={{ display: "flex", justifyContent: "center" }}>
           <StarRating score={score} total={total} />
         </div>
+        {difficulty && (
+          <div
+            style={{
+              fontFamily: "'Rubik', sans-serif",
+              fontWeight: 700,
+              fontSize: 16,
+              color: subject.color,
+              marginTop: 10,
+            }}
+          >
+            {`+${getXpForLesson(difficulty, score, total)} נק׳`}
+          </div>
+        )}
         <div
           style={{
             fontFamily: "'Space Mono', monospace",

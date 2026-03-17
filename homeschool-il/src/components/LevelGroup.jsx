@@ -57,7 +57,7 @@ export default function LevelGroup({ level, lessons, subjectKey, progress, child
               index={i}
               subjectKey={subjectKey}
               result={result}
-              onClick={() => onSelectLesson(lesson)}
+              onClick={() => onSelectLesson(lesson, level)}
             />
           );
         })}

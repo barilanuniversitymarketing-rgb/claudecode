@@ -46,3 +46,10 @@ export function getLessonResult(childId, subject, lessonId, progress) {
   const key = `${childId}.${subject}.${lessonId}`;
   return progress[key] || null;
 }
+
+export function getChildTotalXp(childId, progress) {
+  const prefix = `${childId}.`;
+  return Object.entries(progress)
+    .filter(([key]) => key.startsWith(prefix))
+    .reduce((sum, [, entry]) => sum + (entry.xp || 0), 0);
+}

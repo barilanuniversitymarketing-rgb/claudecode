@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
 import { CHILDREN } from "../data/children";
 import ProgressBar from "./ProgressBar";
+import LevelBadge from "./LevelBadge";
 
-export default function ChildTabs({ activeChild, onSelect, getChildName, setChildName, stats }) {
+export default function ChildTabs({ activeChild, onSelect, getChildName, setChildName, stats, xpByChild }) {
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState("");
   const inputRef = useRef(null);
@@ -118,6 +119,7 @@ export default function ChildTabs({ activeChild, onSelect, getChildName, setChil
                 <div style={{ fontFamily: "'Rubik', sans-serif", fontSize: 11, color: "#888", marginTop: 1 }}>
                   {child.grade}
                 </div>
+                <LevelBadge totalXp={xpByChild?.[child.id] ?? 0} />
               </div>
             </div>
             <ProgressBar value={totalCompleted} max={totalLessons} color={subjectColor} />
