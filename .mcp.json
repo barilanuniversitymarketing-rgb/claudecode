@@ -2,8 +2,8 @@
   "mcpServers": {
     "youtube-analytics-mcp": {
       "type": "stdio",
-      "command": "node",
-      "args": ["/home/user/claudecode/youtube-analytics-mcp/dist/index.js"]
+      "command": "/home/user/claudecode/youtube-analytics-mcp/start.sh",
+      "args": []
     }
   }
 }
