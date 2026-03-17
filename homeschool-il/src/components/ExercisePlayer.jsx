@@ -193,38 +193,12 @@ export default function ExercisePlayer({ lesson, subjectKey, onComplete, difficu
           background: cardBg,
           border: `1.5px solid ${cardBorder}`,
           borderRadius: 16,
-          padding: "28px 24px 28px 24px",
+          padding: "28px 24px",
           marginBottom: 16,
           transition: "background 200ms, border-color 200ms",
           minHeight: 100,
-          position: "relative",
         }}
       >
-        {hasSpeech && (() => {
-          const isEnglish = exercise.type === "text" && /[a-zA-Z]/.test(exercise.q);
-          const lang = isEnglish ? "en-US" : "he-IL";
-          return (
-            <button
-              onClick={() => speak(exercise.q, lang)}
-              aria-label="קרא את השאלה בקול"
-              style={{
-                position: "absolute",
-                top: 10,
-                left: 10,
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontSize: 18,
-                padding: 4,
-                lineHeight: 1,
-                color: isSpeaking ? subject.color : "#bbb",
-                transition: "color 150ms",
-              }}
-            >
-              {isSpeaking ? "🔊" : "🔈"}
-            </button>
-          );
-        })()}
         <p
           style={{
             fontFamily: "'Rubik', sans-serif",
@@ -239,6 +213,34 @@ export default function ExercisePlayer({ lesson, subjectKey, onComplete, difficu
         >
           {exercise.q}
         </p>
+        {hasSpeech && (() => {
+          const isEnglish = exercise.type === "text" && /[a-zA-Z]/.test(exercise.q);
+          return (
+            <button
+              onClick={() => speak(exercise.q, isEnglish ? "en-US" : "he-IL")}
+              aria-label="קרא את השאלה בקול"
+              style={{
+                marginTop: 14,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                background: isSpeaking ? subject.color : "transparent",
+                border: `1.5px solid ${isSpeaking ? subject.color : "#ddd"}`,
+                borderRadius: 20,
+                padding: "5px 14px",
+                cursor: "pointer",
+                fontFamily: "'Rubik', sans-serif",
+                fontSize: 13,
+                color: isSpeaking ? "#fff" : "#888",
+                transition: "all 150ms",
+                minHeight: 36,
+              }}
+            >
+              <span>{isSpeaking ? "🔊" : "🔈"}</span>
+              <span>הקשב לשאלה</span>
+            </button>
+          );
+        })()}
 
         {feedback && (
           <div
