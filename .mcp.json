@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "youtube-analytics-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/home/user/claudecode/youtube-analytics-mcp/dist/index.js"]
+    }
+  }
+}
