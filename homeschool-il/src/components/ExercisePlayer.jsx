@@ -14,7 +14,26 @@ export default function ExercisePlayer({ lesson, subjectKey, onComplete, difficu
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState(null); // null | "correct" | "wrong"
   const [done, setDone] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const inputRef = useRef(null);
+  const hasSpeech = typeof window !== "undefined" && "speechSynthesis" in window;
+
+  function speak(text, lang) {
+    if (!hasSpeech) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = lang;
+    utter.onend = () => setIsSpeaking(false);
+    utter.onerror = () => setIsSpeaking(false);
+    setIsSpeaking(true);
+    window.speechSynthesis.speak(utter);
+  }
+
+  // Cancel speech when moving to next question or finishing
+  useEffect(() => {
+    window.speechSynthesis?.cancel();
+    setIsSpeaking(false);
+  }, [current, done]);
 
   useEffect(() => {
     if (!done && !feedback) {
@@ -174,12 +193,38 @@ export default function ExercisePlayer({ lesson, subjectKey, onComplete, difficu
           background: cardBg,
           border: `1.5px solid ${cardBorder}`,
           borderRadius: 16,
-          padding: "28px 24px",
+          padding: "28px 24px 28px 24px",
           marginBottom: 16,
           transition: "background 200ms, border-color 200ms",
           minHeight: 100,
+          position: "relative",
         }}
       >
+        {hasSpeech && (() => {
+          const isEnglish = exercise.type === "text" && /[a-zA-Z]/.test(exercise.q);
+          const lang = isEnglish ? "en-US" : "he-IL";
+          return (
+            <button
+              onClick={() => speak(exercise.q, lang)}
+              aria-label="קרא את השאלה בקול"
+              style={{
+                position: "absolute",
+                top: 10,
+                left: 10,
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: 18,
+                padding: 4,
+                lineHeight: 1,
+                color: isSpeaking ? subject.color : "#bbb",
+                transition: "color 150ms",
+              }}
+            >
+              {isSpeaking ? "🔊" : "🔈"}
+            </button>
+          );
+        })()}
         <p
           style={{
             fontFamily: "'Rubik', sans-serif",

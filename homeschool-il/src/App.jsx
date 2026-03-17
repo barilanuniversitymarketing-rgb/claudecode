@@ -16,6 +16,7 @@ import SubjectCard from "./components/SubjectCard";
 import LevelGroup from "./components/LevelGroup";
 import ExercisePlayer from "./components/ExercisePlayer";
 import LevelUpToast from "./components/LevelUpToast";
+import XpLeaderboard from "./components/XpLeaderboard";
 
 const CURRICULA = {
   child1: { math: child1Math, english: child1English },
@@ -125,6 +126,7 @@ export default function App() {
                 stats={childStats}
                 xpByChild={xpByChild}
               />
+              <XpLeaderboard xpByChild={xpByChild} getChildName={getChildName} />
               <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
                 {Object.keys(SUBJECTS).map((key, i) => (
                   <SubjectCard
