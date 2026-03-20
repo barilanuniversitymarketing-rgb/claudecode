@@ -10,6 +10,7 @@ import { useProgress } from "./hooks/useProgress";
 import { useChildNames } from "./hooks/useChildNames";
 import { getSubjectStats, getChildStats, getChildTotalXp } from "./utils/stats";
 import { getRankForXp } from "./data/gamification";
+import { getEarnedBadges } from "./data/badges";
 import Header from "./components/Header";
 import ChildTabs from "./components/ChildTabs";
 import SubjectCard from "./components/SubjectCard";
@@ -17,6 +18,8 @@ import LevelGroup from "./components/LevelGroup";
 import ExercisePlayer from "./components/ExercisePlayer";
 import LevelUpToast from "./components/LevelUpToast";
 import XpLeaderboard from "./components/XpLeaderboard";
+import ChildSummary from "./components/ChildSummary";
+import BadgeToast from "./components/BadgeToast";
 
 const CURRICULA = {
   child1: { math: child1Math, english: child1English },
@@ -30,11 +33,13 @@ export default function App() {
   const [activeLesson, setActiveLesson] = useState(null);
   const [activeLevel, setActiveLevel] = useState(null);
   const [levelUpRank, setLevelUpRank] = useState(null);
+  const [badgeQueue, setBadgeQueue] = useState([]);
 
   const [progress, saveResult, resetProgress] = useProgress();
   const [getChildName, setChildName] = useChildNames();
 
   const rankBeforeRef = useRef(null);
+  const badgesBeforeRef = useRef(null);
 
   const childStats = {
     child1: getChildStats("child1", progress),
@@ -46,7 +51,7 @@ export default function App() {
     child2: getChildTotalXp("child2", progress),
   };
 
-  // Detect level-up after progress updates
+  // Detect level-up and new badges after progress updates
   useEffect(() => {
     if (rankBeforeRef.current === null) return;
     const rankBefore = rankBeforeRef.current;
@@ -55,6 +60,17 @@ export default function App() {
       setLevelUpRank(rankAfter);
     }
     rankBeforeRef.current = null;
+
+    if (badgesBeforeRef.current !== null) {
+      const before = badgesBeforeRef.current;
+      const newBadges = getEarnedBadges(activeChild, progress).filter(
+        (b) => !before.has(b.id)
+      );
+      if (newBadges.length > 0) {
+        setBadgeQueue((q) => [...q, ...newBadges]);
+      }
+      badgesBeforeRef.current = null;
+    }
   }, [progress, activeChild]);
 
   function handleBack() {
@@ -75,7 +91,14 @@ export default function App() {
 
   function handleLessonComplete(score, total) {
     rankBeforeRef.current = getRankForXp(getChildTotalXp(activeChild, progress));
+    badgesBeforeRef.current = new Set(
+      getEarnedBadges(activeChild, progress).map((b) => b.id)
+    );
     saveResult(activeChild, activeSubject, activeLesson.id, score, total, activeLevel);
+  }
+
+  function handleBadgeDismiss() {
+    setBadgeQueue((q) => q.slice(1));
   }
 
   function handleReset() {
@@ -127,6 +150,12 @@ export default function App() {
                 xpByChild={xpByChild}
               />
               <XpLeaderboard xpByChild={xpByChild} getChildName={getChildName} />
+              <ChildSummary
+                childId={activeChild}
+                progress={progress}
+                childStats={childStats[activeChild]}
+                totalXp={xpByChild[activeChild] ?? 0}
+              />
               <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
                 {Object.keys(SUBJECTS).map((key, i) => (
                   <SubjectCard
@@ -262,6 +291,9 @@ export default function App() {
 
       {levelUpRank && (
         <LevelUpToast rank={levelUpRank} onDismiss={() => setLevelUpRank(null)} />
+      )}
+      {badgeQueue.length > 0 && !levelUpRank && (
+        <BadgeToast badge={badgeQueue[0]} onDismiss={handleBadgeDismiss} />
       )}
     </div>
   );
