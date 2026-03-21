@@ -1,65 +1,104 @@
-@import url('https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=Heebo:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Hebrew:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
-*, *::before, *::after {
-  box-sizing: border-box;
+@theme {
+  --color-primary: #004484;
+  --color-primary-container: #005bae;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #bed5ff;
+  --color-primary-fixed: #d5e3ff;
+  --color-primary-fixed-dim: #a8c8ff;
+  --color-secondary: #3f608b;
+  --color-secondary-container: #aacbfd;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #345681;
+  --color-secondary-fixed: #d4e3ff;
+  --color-tertiary: #890045;
+  --color-tertiary-container: #b4005d;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-container: #ffc4d3;
+  --color-tertiary-fixed: #ffd9e2;
+  --color-tertiary-fixed-dim: #ffb1c7;
+  --color-surface: #f7f9fb;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f2f4f6;
+  --color-surface-container: #eceef0;
+  --color-surface-container-high: #e6e8ea;
+  --color-surface-container-highest: #e0e3e5;
+  --color-on-surface: #191c1e;
+  --color-on-surface-variant: #424752;
+  --color-outline: #727783;
+  --color-outline-variant: #c2c6d3;
+  --color-background: #f7f9fb;
+  --color-inverse-primary: #a8c8ff;
+  --color-error: #ba1a1a;
+  --font-headline: 'Noto Serif Hebrew', 'Noto Serif', serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+  --font-label: 'Plus Jakarta Sans', sans-serif;
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-}
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; }
 
 body {
   font-family: var(--font-body);
-  background: var(--color-background);
-  color: var(--color-text-primary);
+  background: #f7f9fb;
+  color: #191c1e;
   direction: rtl;
+  -webkit-font-smoothing: antialiased;
 }
 
-#root {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+#root { min-height: 100vh; }
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+  user-select: none;
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* Glass nav effect */
+.glass-nav {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
+/* Smooth scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #c2c6d3; border-radius: 4px; }
+
+/* Focus */
+*:focus-visible { outline: 2px solid #004484; outline-offset: 2px; }
+
+/* RTL select */
+select { direction: rtl; text-align: right; }
+
+/* Range input */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%; height: 4px;
+  background: #e6e8ea; border-radius: 2px; outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  background: #004484; border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: var(--border-radius-full);
-}
+/* No scrollbar */
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted);
-}
-
-/* Focus ring */
-*:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-/* RTL select arrow fix */
-select {
-  direction: rtl;
-  text-align: right;
-}
-
-/* Input focus */
-input:focus, select:focus, textarea:focus {
-  border-color: var(--color-primary) !important;
-  box-shadow: 0 0 0 3px rgba(181, 69, 27, 0.12);
+/* Santorini ambient accents */
+.santorini-bg {
+  background-color: #f7f9fb;
+  background-image:
+    radial-gradient(circle at 0% 0%, rgba(0,68,132,0.04) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(137,0,69,0.04) 0%, transparent 50%);
 }

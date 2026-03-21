@@ -2,13 +2,10 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useSwipeable } from 'react-swipeable';
 import type { Task, TaskStatus } from '../types';
-import {
-  CATEGORY_LABELS,
-  CATEGORY_EMOJIS,
-  PRIORITY_LABELS,
-  COLUMNS,
-} from '../types';
+import { COLUMNS } from '../types';
 import { useTaskStore } from '../store/useTaskStore';
+import { Icon } from './Icon';
+import { MemberAvatar } from './MemberAvatar';
 
 interface TaskCardProps {
   task: Task;
@@ -16,340 +13,174 @@ interface TaskCardProps {
   isDragging?: boolean;
 }
 
-const priorityColors: Record<string, string> = {
-  high: 'var(--color-priority-high)',
-  medium: 'var(--color-priority-medium)',
-  low: 'var(--color-priority-low)',
+const PRIORITY_BADGE: Record<string, { bg: string; color: string; label: string }> = {
+  high:   { bg: 'rgba(137,0,69,0.1)',  color: 'var(--color-tertiary)',         label: 'דחוף' },
+  medium: { bg: 'rgba(0,91,174,0.1)',  color: 'var(--color-primary-container)', label: 'חשוב' },
+  low:    { bg: 'var(--color-surface-container)', color: 'var(--color-on-surface-variant)', label: 'רגיל' },
 };
 
-const priorityBg: Record<string, string> = {
-  high: 'var(--color-priority-high-bg)',
-  medium: 'var(--color-priority-medium-bg)',
-  low: 'var(--color-priority-low-bg)',
-};
-
-const categoryColors: Record<string, string> = {
-  cleaning: 'var(--color-cat-cleaning)',
-  food: 'var(--color-cat-food)',
-  shopping: 'var(--color-cat-shopping)',
-  guests: 'var(--color-cat-guests)',
-  ceremony: 'var(--color-cat-ceremony)',
-  kids: 'var(--color-cat-kids)',
-  general: 'var(--color-cat-general)',
-};
-
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('he-IL', { day: 'numeric', month: 'long' });
-}
-
-function isOverdue(dateStr: string): boolean {
-  return new Date(dateStr) < new Date();
+function formatDate(d: string) {
+  return new Date(d).toLocaleDateString('he-IL', { day: 'numeric', month: 'short' });
 }
 
 export function TaskCard({ task, onEdit, isDragging }: TaskCardProps) {
-  const { deleteTask, moveTask } = useTaskStore();
+  const { deleteTask, moveTask, getMemberById } = useTaskStore();
   const [showMenu, setShowMenu] = useState(false);
-  const [swipeOffset, setSwipeOffset] = useState(0);
-  const [isSwiping, setIsSwiping] = useState(false);
-
-  const nextStatuses = COLUMNS.filter((c) => c.id !== task.status);
+  const [swipeX, setSwipeX] = useState(0);
+  const assignee = task.assigneeId ? getMemberById(task.assigneeId) : undefined;
+  const nextCols = COLUMNS.filter(c => c.id !== task.status);
+  const badge = PRIORITY_BADGE[task.priority];
+  const isDone = task.status === 'done';
 
   const swipeHandlers = useSwipeable({
-    onSwiping: (e) => {
-      setIsSwiping(true);
-      // RTL: swipe right = positive deltaX = move back, swipe left = negative = move forward
-      setSwipeOffset(Math.max(-80, Math.min(80, e.deltaX)));
-    },
+    onSwiping: e => setSwipeX(Math.max(-70, Math.min(0, e.deltaX))),
     onSwipedLeft: () => {
-      // Move to next status in RTL (left = forward in Hebrew layout)
-      const nextStatus = nextStatuses[0];
-      if (nextStatus) moveTask(task.id, nextStatus.id);
-      setSwipeOffset(0);
-      setIsSwiping(false);
+      if (nextCols[0]) moveTask(task.id, nextCols[0].id as TaskStatus);
+      setSwipeX(0);
     },
-    onSwipedRight: () => {
-      setSwipeOffset(0);
-      setIsSwiping(false);
-    },
-    onTouchEndOrOnMouseUp: () => {
-      setSwipeOffset(0);
-      setIsSwiping(false);
-    },
+    onTouchEndOrOnMouseUp: () => setSwipeX(0),
     trackMouse: false,
-    trackTouch: true,
-    delta: 10,
+    delta: 15,
   });
 
-  const overdue = task.dueDate && isOverdue(task.dueDate) && task.status !== 'done';
-
   return (
-    <div
-      style={{ position: 'relative', marginBottom: 'var(--spacing-sm)' }}
-      {...swipeHandlers}
-    >
-      {/* Swipe hint background */}
-      {isSwiping && swipeOffset < -20 && (
+    <div className="relative mb-3" {...swipeHandlers}>
+      {/* Swipe hint */}
+      {swipeX < -20 && (
         <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            borderRadius: 'var(--border-radius-card)',
-            background: 'var(--color-status-done-bg)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-            paddingInlineStart: '1rem',
-            color: 'var(--color-status-done)',
-            fontFamily: 'var(--font-body)',
-            fontSize: 'var(--font-size-sm)',
-            fontWeight: 'var(--font-weight-semibold)',
-          }}
+          className="absolute inset-0 flex items-center justify-start ps-4 rounded-xl"
+          style={{ background: 'var(--color-primary-fixed)', color: 'var(--color-primary)', fontSize: '0.8rem', fontWeight: 600 }}
         >
-          ✅ העבר
+          <Icon name="check_circle" size={18} filled /> &nbsp;{nextCols[0]?.title}
         </div>
       )}
 
       <motion.div
         layout
-        animate={{
-          x: swipeOffset,
-          scale: isDragging ? 1.03 : 1,
-          opacity: isDragging ? 0.9 : 1,
-        }}
+        animate={{ x: swipeX, scale: isDragging ? 1.02 : 1, opacity: isDragging ? 0.8 : 1 }}
         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+        whileHover={{ y: -2, boxShadow: '0 8px 24px rgba(0,27,60,0.12)' }}
+        className="rounded-xl cursor-grab select-none"
         style={{
-          background: task.status === 'done' ? 'var(--color-status-done-bg)' : 'var(--color-card)',
-          borderRadius: 'var(--border-radius-card)',
-          boxShadow: isDragging ? 'var(--shadow-card-hover)' : 'var(--shadow-card)',
-          padding: 'var(--spacing-md)',
-          cursor: 'grab',
-          borderInlineStart: `4px solid ${categoryColors[task.category] || 'var(--color-border)'}`,
-          position: 'relative',
-          transition: isSwiping ? 'none' : undefined,
+          background: isDone ? 'rgba(242,244,246,0.7)' : 'var(--color-surface-container-lowest)',
+          boxShadow: isDragging ? '0 8px 24px rgba(0,27,60,0.16)' : '0 2px 8px rgba(0,27,60,0.06)',
+          padding: '1.25rem',
+          border: '1px solid var(--color-surface-container-high)',
+          opacity: isDone ? 0.75 : 1,
         }}
-        whileHover={{ boxShadow: 'var(--shadow-card-hover)', y: -1 }}
+        onClick={() => { if (!isDragging) setShowMenu(false); }}
       >
-        {/* Card header */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            gap: 'var(--spacing-sm)',
-            marginBottom: 'var(--spacing-sm)',
-          }}
-        >
-          <h3
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: 'var(--font-size-base)',
-              fontWeight: 'var(--font-weight-semibold)',
-              color: task.status === 'done' ? 'var(--color-text-muted)' : 'var(--color-text-primary)',
-              margin: 0,
-              textDecoration: task.status === 'done' ? 'line-through' : 'none',
-              flex: 1,
-              lineHeight: 1.4,
-            }}
+        {/* Top row: priority badge + menu */}
+        <div className="flex justify-between items-start mb-3">
+          <span
+            className="text-xs font-bold uppercase px-2 py-1 rounded"
+            style={{ background: badge.bg, color: badge.color, fontSize: '0.65rem', letterSpacing: '0.05em' }}
           >
-            {task.title}
-          </h3>
+            {badge.label}
+          </span>
 
-          {/* Menu button */}
-          <div style={{ position: 'relative' }}>
+          <div className="relative">
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowMenu(!showMenu);
-              }}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--color-text-muted)',
-                fontSize: '1.1rem',
-                lineHeight: 1,
-                padding: '0.1rem 0.3rem',
-                borderRadius: 'var(--border-radius-sm)',
-              }}
+              onClick={e => { e.stopPropagation(); setShowMenu(v => !v); }}
+              className="p-1 rounded-full hover:bg-surface-container transition-colors"
+              style={{ color: 'var(--color-on-surface-variant)', background: 'none', border: 'none', cursor: 'pointer' }}
             >
-              ⋯
+              <Icon name="more_vert" size={18} />
             </button>
+
             {showMenu && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: -5 }}
+                initial={{ opacity: 0, scale: 0.92, y: -6 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
+                className="absolute rounded-xl overflow-hidden z-50"
                 style={{
-                  position: 'absolute',
-                  top: '100%',
-                  insetInlineEnd: 0,
-                  background: 'var(--color-card)',
-                  borderRadius: 'var(--border-radius-sm)',
-                  boxShadow: 'var(--shadow-card-hover)',
-                  border: '1px solid var(--color-border)',
-                  zIndex: 50,
-                  minWidth: '150px',
-                  overflow: 'hidden',
+                  top: '100%', insetInlineEnd: 0, minWidth: '160px',
+                  background: 'var(--color-surface-container-lowest)',
+                  boxShadow: '0 8px 24px rgba(0,27,60,0.14)',
+                  border: '1px solid var(--color-surface-container-high)',
                 }}
                 onMouseLeave={() => setShowMenu(false)}
               >
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit(task);
-                    setShowMenu(false);
-                  }}
-                  style={menuItemStyle}
-                >
-                  ✏️ ערוך
-                </button>
-
-                {nextStatuses.map((col) => (
+                {[
+                  { label: 'ערוך', icon: 'edit', action: () => { onEdit(task); setShowMenu(false); } },
+                  ...nextCols.map(c => ({
+                    label: `העבר ל${c.title}`, icon: 'move_down',
+                    action: () => { moveTask(task.id, c.id as TaskStatus); setShowMenu(false); }
+                  })),
+                  { label: 'מחק', icon: 'delete', action: () => { deleteTask(task.id); setShowMenu(false); }, danger: true },
+                ].map((item, i) => (
                   <button
-                    key={col.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      moveTask(task.id, col.id as TaskStatus);
-                      setShowMenu(false);
+                    key={i}
+                    onClick={e => { e.stopPropagation(); (item as { action: () => void }).action(); }}
+                    className="flex items-center gap-2 w-full px-4 py-3 text-sm text-right hover:bg-surface-container transition-colors"
+                    style={{
+                      fontFamily: 'var(--font-body)', border: 'none', background: 'none', cursor: 'pointer',
+                      color: (item as { danger?: boolean }).danger ? 'var(--color-error)' : 'var(--color-on-surface)',
                     }}
-                    style={menuItemStyle}
                   >
-                    {col.emoji} העבר ל{col.title}
+                    <Icon name={item.icon} size={16} />
+                    {item.label}
                   </button>
                 ))}
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteTask(task.id);
-                    setShowMenu(false);
-                  }}
-                  style={{ ...menuItemStyle, color: 'var(--color-priority-high)' }}
-                >
-                  🗑️ מחק
-                </button>
               </motion.div>
             )}
           </div>
         </div>
 
-        {/* Description */}
-        {task.description && (
-          <p
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: 'var(--font-size-sm)',
-              color: 'var(--color-text-secondary)',
-              margin: '0 0 var(--spacing-sm)',
-              lineHeight: 1.5,
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}
-          >
-            {task.description}
-          </p>
+        {/* Title */}
+        <h3
+          className="font-bold leading-tight mb-4"
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: '1rem',
+            color: isDone ? 'var(--color-on-surface-variant)' : 'var(--color-on-surface)',
+            textDecoration: isDone ? 'line-through' : 'none',
+          }}
+        >
+          {task.title}
+        </h3>
+
+        {/* Progress bar (for in-progress tasks) */}
+        {task.status === 'inprogress' && task.progress !== undefined && (
+          <div className="mb-4">
+            <div className="flex justify-between items-center mb-1.5" style={{ fontSize: '0.7rem', color: 'var(--color-on-surface-variant)' }}>
+              <span>התקדמות</span>
+              <span>{task.progress}%</span>
+            </div>
+            <div className="rounded-full overflow-hidden" style={{ height: '6px', background: 'var(--color-surface-container-high)' }}>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${task.progress}%` }}
+                transition={{ duration: 0.6, ease: 'easeOut' }}
+                style={{ height: '100%', background: 'var(--color-primary)', borderRadius: '9999px' }}
+              />
+            </div>
+          </div>
         )}
 
-        {/* Tags row */}
+        {/* Footer */}
         <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '0.3rem',
-            marginBottom: 'var(--spacing-sm)',
-          }}
+          className="flex justify-between items-center pt-3"
+          style={{ borderTop: '1px solid var(--color-surface-container-low)' }}
         >
-          {/* Category badge */}
-          <span
-            style={{
-              fontSize: 'var(--font-size-xs)',
-              padding: '0.2rem 0.5rem',
-              borderRadius: 'var(--border-radius-full)',
-              background: `${categoryColors[task.category]}18`,
-              color: categoryColors[task.category],
-              fontFamily: 'var(--font-body)',
-              fontWeight: 'var(--font-weight-medium)',
-            }}
-          >
-            {CATEGORY_EMOJIS[task.category]} {CATEGORY_LABELS[task.category]}
-          </span>
+          {/* Points */}
+          <div className="flex items-center gap-1" style={{ color: 'var(--color-primary)' }}>
+            <Icon name="star" size={16} filled />
+            <span style={{ fontWeight: 700, fontSize: '0.8rem' }}>{task.points}</span>
+          </div>
 
-          {/* Priority badge */}
-          <span
-            style={{
-              fontSize: 'var(--font-size-xs)',
-              padding: '0.2rem 0.5rem',
-              borderRadius: 'var(--border-radius-full)',
-              background: priorityBg[task.priority],
-              color: priorityColors[task.priority],
-              fontFamily: 'var(--font-body)',
-              fontWeight: 'var(--font-weight-medium)',
-            }}
-          >
-            {task.priority === 'high' ? '🔴' : task.priority === 'medium' ? '🟡' : '🟢'}{' '}
-            {PRIORITY_LABELS[task.priority]}
-          </span>
-        </div>
-
-        {/* Footer row */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 'var(--spacing-sm)',
-          }}
-        >
-          {/* Assignee */}
-          {task.assignee && (
-            <span
-              style={{
-                fontSize: 'var(--font-size-xs)',
-                color: 'var(--color-text-muted)',
-                fontFamily: 'var(--font-body)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.25rem',
-              }}
-            >
-              👤 {task.assignee}
-            </span>
-          )}
-
-          {/* Due date */}
-          {task.dueDate && (
-            <span
-              style={{
-                fontSize: 'var(--font-size-xs)',
-                fontFamily: 'var(--font-body)',
-                color: overdue ? 'var(--color-priority-high)' : 'var(--color-text-muted)',
-                fontWeight: overdue ? 'var(--font-weight-semibold)' : 'var(--font-weight-normal)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.25rem',
-              }}
-            >
-              {overdue ? '⚠️' : '📅'} {formatDate(task.dueDate)}
-            </span>
-          )}
+          {/* Category icon + due date + assignee */}
+          <div className="flex items-center gap-2">
+            {task.dueDate && (
+              <div className="flex items-center gap-1" style={{ color: 'var(--color-on-surface-variant)', fontSize: '0.7rem' }}>
+                <Icon name="calendar_today" size={13} />
+                <span>{formatDate(task.dueDate)}</span>
+              </div>
+            )}
+            {assignee && <MemberAvatar member={assignee} size={26} showBorder />}
+          </div>
         </div>
       </motion.div>
     </div>
   );
 }
-
-const menuItemStyle: React.CSSProperties = {
-  display: 'block',
-  width: '100%',
-  padding: '0.6rem 1rem',
-  border: 'none',
-  background: 'none',
-  cursor: 'pointer',
-  fontFamily: 'var(--font-body)',
-  fontSize: 'var(--font-size-sm)',
-  color: 'var(--color-text-primary)',
-  textAlign: 'right',
-  transition: 'background var(--transition-fast)',
-};

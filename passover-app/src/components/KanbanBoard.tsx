@@ -21,35 +21,25 @@ interface KanbanBoardProps {
 
 export function KanbanBoard({ onEdit, onAddTask }: KanbanBoardProps) {
   const { getTasksByStatus, moveTask } = useTaskStore();
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  function handleDragOver(_event: DragOverEvent) {
-    // handled by dnd-kit
-  }
+  function handleDragOver(_event: DragOverEvent) {}
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
-
     if (!over) return;
-
     const activeId = String(active.id);
     const overId = String(over.id);
-
-    // Determine the target column
-    const targetColumn = COLUMNS.find((c) => c.id === overId);
-    if (targetColumn) {
-      moveTask(activeId, targetColumn.id as TaskStatus);
-      return;
-    }
-
-    // Dropped on another task — find which column that task belongs to
-    const allTasks = COLUMNS.flatMap((col) => getTasksByStatus(col.id));
-    const overTask = allTasks.find((t) => t.id === overId);
+    const targetColumn = COLUMNS.find(c => c.id === overId);
+    if (targetColumn) { moveTask(activeId, targetColumn.id as TaskStatus); return; }
+    const allTasks = COLUMNS.flatMap(col => getTasksByStatus(col.id));
+    const overTask = allTasks.find(t => t.id === overId);
     if (overTask) {
-      const activeTask = allTasks.find((t) => t.id === activeId);
+      const activeTask = allTasks.find(t => t.id === activeId);
       if (activeTask && activeTask.status !== overTask.status) {
         moveTask(activeId, overTask.status as TaskStatus);
       }
@@ -64,18 +54,15 @@ export function KanbanBoard({ onEdit, onAddTask }: KanbanBoardProps) {
       onDragEnd={handleDragEnd}
     >
       <div
+        className="flex gap-6 overflow-x-auto hide-scrollbar items-start"
         style={{
-          display: 'flex',
-          gap: 'var(--spacing-lg)',
-          padding: 'var(--spacing-xl)',
-          overflowX: 'auto',
-          alignItems: 'flex-start',
-          minHeight: 'calc(100vh - 200px)',
-          maxWidth: '1400px',
+          padding: '1.5rem 2rem 6rem',
+          maxWidth: '1600px',
           margin: '0 auto',
+          minHeight: 'calc(100vh - 140px)',
         }}
       >
-        {COLUMNS.map((column) => (
+        {COLUMNS.map(column => (
           <KanbanColumn
             key={column.id}
             column={column}

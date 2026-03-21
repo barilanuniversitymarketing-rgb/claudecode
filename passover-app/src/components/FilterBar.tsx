@@ -1,180 +1,92 @@
 import { useTaskStore } from '../store/useTaskStore';
-import {
-  CATEGORY_LABELS,
-  CATEGORY_EMOJIS,
-  PRIORITY_LABELS,
-  FAMILY_MEMBERS,
-} from '../types';
+import { CATEGORY_LABELS } from '../types';
 import type { TaskCategory, TaskPriority } from '../types';
+import { Icon } from './Icon';
 
 export function FilterBar({ onAddTask }: { onAddTask: () => void }) {
-  const {
-    filters,
-    setSearch,
-    setFilterCategory,
-    setFilterPriority,
-    setFilterAssignee,
-    clearFilters,
-  } = useTaskStore();
+  const { filters, setSearch, setFilterCategory, setFilterPriority, setFilterAssignee, clearFilters, familyMembers } = useTaskStore();
+  const hasActive = filters.search || filters.category !== 'all' || filters.priority !== 'all' || filters.assigneeId !== 'all';
 
-  const hasActiveFilters =
-    filters.search ||
-    filters.category !== 'all' ||
-    filters.priority !== 'all' ||
-    filters.assignee !== 'all';
-
-  const selectStyle: React.CSSProperties = {
-    padding: '0.5rem 0.75rem',
-    borderRadius: 'var(--border-radius-sm)',
-    border: '1.5px solid var(--color-border)',
-    background: 'var(--color-card)',
-    color: 'var(--color-text-primary)',
-    fontFamily: 'var(--font-body)',
-    fontSize: 'var(--font-size-sm)',
-    cursor: 'pointer',
-    outline: 'none',
-    minWidth: '120px',
+  const sel: React.CSSProperties = {
+    padding: '0.5rem 0.75rem', borderRadius: '0.5rem',
+    border: '1px solid var(--color-surface-container-high)',
+    background: 'var(--color-surface-container-lowest)',
+    color: 'var(--color-on-surface)',
+    fontFamily: 'var(--font-body)', fontSize: '0.8rem',
+    cursor: 'pointer', outline: 'none',
   };
 
   return (
     <div
+      className="sticky z-40"
       style={{
-        background: 'var(--color-surface)',
-        borderBottom: '1px solid var(--color-border)',
-        padding: 'var(--spacing-md) var(--spacing-xl)',
+        top: '64px',
+        background: 'rgba(247,249,251,0.8)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid var(--color-surface-container)',
+        padding: '0.75rem 2rem',
       }}
     >
-      <div
-        style={{
-          maxWidth: '1400px',
-          margin: '0 auto',
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 'var(--spacing-sm)',
-          alignItems: 'center',
-        }}
-      >
+      <div className="max-w-[1600px] mx-auto flex flex-wrap gap-2 items-center">
         {/* Search */}
-        <div style={{ position: 'relative', flex: '1', minWidth: '200px' }}>
-          <span
-            style={{
-              position: 'absolute',
-              right: '0.75rem',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              fontSize: '1rem',
-              opacity: 0.5,
-            }}
-          >
-            🔍
+        <div className="relative flex-1" style={{ minWidth: '200px' }}>
+          <span className="absolute" style={{ insetInlineEnd: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-outline)', pointerEvents: 'none' }}>
+            <Icon name="search" size={16} />
           </span>
           <input
             type="text"
-            placeholder="חפש משימה..."
             value={filters.search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="חפש משימה..."
             style={{
+              ...sel,
               width: '100%',
-              padding: '0.5rem 2.5rem 0.5rem 0.75rem',
-              borderRadius: 'var(--border-radius-sm)',
-              border: '1.5px solid var(--color-border)',
-              background: 'var(--color-card)',
-              color: 'var(--color-text-primary)',
-              fontFamily: 'var(--font-body)',
-              fontSize: 'var(--font-size-sm)',
-              outline: 'none',
+              paddingInlineEnd: '2.25rem',
+              paddingInlineStart: '0.75rem',
               boxSizing: 'border-box',
             }}
           />
         </div>
 
-        {/* Category filter */}
-        <select
-          value={filters.category}
-          onChange={(e) => setFilterCategory(e.target.value as TaskCategory | 'all')}
-          style={selectStyle}
-        >
+        <select value={filters.category} onChange={e => setFilterCategory(e.target.value as TaskCategory | 'all')} style={sel}>
           <option value="all">כל הקטגוריות</option>
-          {(Object.keys(CATEGORY_LABELS) as TaskCategory[]).map((cat) => (
-            <option key={cat} value={cat}>
-              {CATEGORY_EMOJIS[cat]} {CATEGORY_LABELS[cat]}
-            </option>
+          {(Object.keys(CATEGORY_LABELS) as TaskCategory[]).map(c => (
+            <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>
           ))}
         </select>
 
-        {/* Priority filter */}
-        <select
-          value={filters.priority}
-          onChange={(e) => setFilterPriority(e.target.value as TaskPriority | 'all')}
-          style={selectStyle}
-        >
+        <select value={filters.priority} onChange={e => setFilterPriority(e.target.value as TaskPriority | 'all')} style={sel}>
           <option value="all">כל העדיפויות</option>
-          {(Object.keys(PRIORITY_LABELS) as TaskPriority[]).map((p) => (
-            <option key={p} value={p}>
-              {PRIORITY_LABELS[p]}
-            </option>
-          ))}
+          <option value="high">דחוף</option>
+          <option value="medium">חשוב</option>
+          <option value="low">רגיל</option>
         </select>
 
-        {/* Assignee filter */}
-        <select
-          value={filters.assignee}
-          onChange={(e) => setFilterAssignee(e.target.value)}
-          style={selectStyle}
-        >
+        <select value={filters.assigneeId} onChange={e => setFilterAssignee(e.target.value)} style={sel}>
           <option value="all">כל האנשים</option>
-          {FAMILY_MEMBERS.map((member) => (
-            <option key={member} value={member}>
-              {member}
-            </option>
-          ))}
+          {familyMembers.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
         </select>
 
-        {/* Clear filters */}
-        {hasActiveFilters && (
-          <button
-            onClick={clearFilters}
-            style={{
-              padding: '0.5rem 0.75rem',
-              borderRadius: 'var(--border-radius-sm)',
-              border: '1.5px solid var(--color-border)',
-              background: 'transparent',
-              color: 'var(--color-text-secondary)',
-              fontFamily: 'var(--font-body)',
-              fontSize: 'var(--font-size-sm)',
-              cursor: 'pointer',
-            }}
-          >
-            ✕ נקה סינון
+        {hasActive && (
+          <button onClick={clearFilters} style={{ ...sel, color: 'var(--color-on-surface-variant)' }}>
+            ✕ נקה
           </button>
         )}
 
-        {/* Spacer */}
-        <div style={{ flex: 1 }} />
+        <div className="flex-1" />
 
-        {/* Add task button */}
         <button
           onClick={onAddTask}
+          className="flex items-center gap-2 px-5 py-2 rounded-xl font-semibold transition-all hover:opacity-90 active:scale-95"
           style={{
-            padding: '0.5rem 1.25rem',
-            borderRadius: 'var(--border-radius-sm)',
-            border: 'none',
-            background: 'var(--color-primary)',
-            color: '#fff',
-            fontFamily: 'var(--font-body)',
-            fontSize: 'var(--font-size-sm)',
-            fontWeight: 'var(--font-weight-semibold)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            boxShadow: 'var(--shadow-sm)',
-            transition: 'background var(--transition-fast)',
+            background: 'var(--color-primary)', color: '#fff',
+            fontFamily: 'var(--font-body)', fontSize: '0.875rem',
+            border: 'none', cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(0,68,132,0.2)',
           }}
-          onMouseOver={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'var(--color-primary-dark)')}
-          onMouseOut={(e) => ((e.currentTarget as HTMLButtonElement).style.background = 'var(--color-primary)')}
         >
-          + הוסף משימה
+          <Icon name="add" size={18} />
+          משימה חדשה
         </button>
       </div>
     </div>
