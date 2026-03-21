@@ -1,0 +1,82 @@
+:root {
+  /* Colors — to be replaced by external design tokens */
+  --color-primary: #b5451b;
+  --color-primary-light: #d4622e;
+  --color-primary-dark: #8a3213;
+  --color-background: #fdf6e3;
+  --color-surface: #fff8ed;
+  --color-card: #ffffff;
+  --color-card-hover: #fffbf5;
+  --color-text-primary: #2c1810;
+  --color-text-secondary: #6b4c3b;
+  --color-text-muted: #9b7b6b;
+  --color-accent: #d4a017;
+  --color-accent-light: #f0c040;
+  --color-border: #e8d5c0;
+  --color-border-light: #f0e6d6;
+
+  /* Status colors */
+  --color-status-todo: #6b7280;
+  --color-status-inprogress: #b5451b;
+  --color-status-done: #16a34a;
+  --color-status-todo-bg: #f3f4f6;
+  --color-status-inprogress-bg: #fef3ee;
+  --color-status-done-bg: #f0fdf4;
+
+  /* Priority colors */
+  --color-priority-high: #dc2626;
+  --color-priority-medium: #d97706;
+  --color-priority-low: #16a34a;
+  --color-priority-high-bg: #fef2f2;
+  --color-priority-medium-bg: #fffbeb;
+  --color-priority-low-bg: #f0fdf4;
+
+  /* Category colors */
+  --color-cat-cleaning: #7c3aed;
+  --color-cat-food: #b5451b;
+  --color-cat-shopping: #0891b2;
+  --color-cat-guests: #059669;
+  --color-cat-ceremony: #d4a017;
+  --color-cat-kids: #ec4899;
+  --color-cat-general: #6b7280;
+
+  /* Typography — to be replaced */
+  --font-display: 'Frank Ruhl Libre', 'David Libre', serif;
+  --font-body: 'Heebo', 'Assistant', sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+
+  /* Border radius — to be replaced */
+  --border-radius-sm: 0.375rem;
+  --border-radius-card: 0.75rem;
+  --border-radius-lg: 1rem;
+  --border-radius-full: 9999px;
+
+  /* Shadows — to be replaced */
+  --shadow-sm: 0 1px 3px rgba(44, 24, 16, 0.08);
+  --shadow-card: 0 2px 8px rgba(44, 24, 16, 0.10), 0 1px 3px rgba(44, 24, 16, 0.06);
+  --shadow-card-hover: 0 8px 24px rgba(44, 24, 16, 0.14), 0 2px 6px rgba(44, 24, 16, 0.08);
+  --shadow-modal: 0 20px 60px rgba(44, 24, 16, 0.20);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 400ms ease;
+}
