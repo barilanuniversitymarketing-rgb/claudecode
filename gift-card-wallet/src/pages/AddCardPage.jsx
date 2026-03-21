@@ -1,18 +1,40 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCards } from '../hooks/useCards'
+import { useCardScanner } from '../hooks/useCardScanner'
 import { CARD_TYPES } from '../data/cardTypes'
 import AppBar from '../components/layout/AppBar'
 
 export default function AddCardPage() {
   const navigate = useNavigate()
   const { addCard } = useCards()
+  const { scan, scanning, error: scanError } = useCardScanner()
+  const fileInputRef = useRef(null)
 
   const [assetType, setAssetType] = useState('gift_card')
   const [cardNumber, setCardNumber] = useState('')
   const [securityPin, setSecurityPin] = useState('')
   const [balance, setBalance] = useState('')
   const [cardType, setCardType] = useState('buyme')
+  const [previewUrl, setPreviewUrl] = useState(null)
+
+  async function handleFileCapture(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setPreviewUrl(URL.createObjectURL(file))
+
+    const result = await scan(file)
+    if (result) {
+      if (result.cardNumber) setCardNumber(result.cardNumber)
+      if (result.securityPin) setSecurityPin(result.securityPin)
+      if (result.balance) setBalance(result.balance)
+      if (result.cardType) setCardType(result.cardType)
+    }
+
+    // Reset input so same file can be re-selected
+    e.target.value = ''
+  }
 
   function handleSubmit(e) {
     e.preventDefault()
@@ -71,18 +93,52 @@ export default function AddCardPage() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Scan Area */}
-          <div className="relative group cursor-pointer overflow-hidden rounded-2xl bg-surface-container-lowest shadow-[0_20px_40px_rgba(26,28,29,0.06)] h-48 flex flex-col items-center justify-center transition-all hover:bg-surface-container">
-            <div className="absolute inset-0 opacity-10 bg-gradient-to-tr from-primary to-transparent" />
-            <div className="w-16 h-16 rounded-full bg-surface-container-low flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
-              <span className="material-symbols-outlined text-primary text-3xl">photo_camera</span>
-            </div>
-            <span className="font-headline font-bold text-sm tracking-tight text-primary">
-              Scan Barcode
-            </span>
-            <span className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant mt-1">
-              Automatic Detection
-            </span>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={handleFileCapture}
+          />
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className="relative group cursor-pointer overflow-hidden rounded-2xl bg-surface-container-lowest shadow-[0_20px_40px_rgba(26,28,29,0.06)] h-48 flex flex-col items-center justify-center transition-all hover:bg-surface-container"
+          >
+            {scanning && (
+              <div className="absolute inset-0 bg-surface/80 flex flex-col items-center justify-center z-10">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-3" />
+                <span className="text-xs font-headline font-bold text-primary">Reading card...</span>
+              </div>
+            )}
+            {previewUrl ? (
+              <>
+                <img src={previewUrl} alt="Scanned card" className="absolute inset-0 w-full h-full object-cover opacity-30" />
+                <div className="relative z-[1] flex flex-col items-center">
+                  <span className="material-symbols-outlined text-primary text-3xl mb-2">refresh</span>
+                  <span className="font-headline font-bold text-sm tracking-tight text-primary">
+                    Tap to Re-scan
+                  </span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="absolute inset-0 opacity-10 bg-gradient-to-tr from-primary to-transparent" />
+                <div className="w-16 h-16 rounded-full bg-surface-container-low flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
+                  <span className="material-symbols-outlined text-primary text-3xl">photo_camera</span>
+                </div>
+                <span className="font-headline font-bold text-sm tracking-tight text-primary">
+                  Scan Card
+                </span>
+                <span className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant mt-1">
+                  Auto-fill from photo
+                </span>
+              </>
+            )}
           </div>
+          {scanError && (
+            <p className="text-xs text-error text-center mt-2">{scanError}</p>
+          )}
 
           {/* Manual Inputs */}
           <div className="space-y-6">
