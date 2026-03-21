@@ -1,7 +1,16 @@
+import { useNavigate } from 'react-router-dom'
 import { useCards } from '../hooks/useCards'
+import { useAuth } from '../hooks/useAuth'
 
 export default function SettingsPage() {
   const { cards } = useCards()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+
+  async function handleSignOut() {
+    await logout()
+    navigate('/login')
+  }
 
   function handleClearAll() {
     if (confirm('Delete all cards and data? This cannot be undone.')) {
@@ -46,6 +55,30 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+
+        <div className="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+          <div className="p-5 flex items-center gap-4">
+            <span className="material-symbols-outlined text-on-surface-variant">account_circle</span>
+            <div className="flex-1">
+              <p className="font-headline font-bold text-sm text-primary">Account</p>
+              <p className="text-xs text-on-surface-variant mt-0.5">{user?.email}</p>
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={handleSignOut}
+          className="w-full bg-surface-container-lowest rounded-2xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.04)] text-left"
+        >
+          <div className="p-5 flex items-center gap-4">
+            <span className="material-symbols-outlined text-on-surface-variant">logout</span>
+            <div className="flex-1">
+              <p className="font-headline font-bold text-sm text-primary">Sign Out</p>
+              <p className="text-xs text-on-surface-variant mt-0.5">Sign out of your account</p>
+            </div>
+            <span className="material-symbols-outlined text-on-surface-variant text-lg">chevron_right</span>
+          </div>
+        </button>
 
         <button
           onClick={handleClearAll}
