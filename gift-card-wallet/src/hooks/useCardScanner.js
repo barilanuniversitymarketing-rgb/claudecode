@@ -61,7 +61,12 @@ export function useCardScanner() {
 
     try {
       if (!workerRef.current) {
-        const worker = await createWorker('eng+heb')
+        let worker
+        try {
+          worker = await createWorker('eng+heb')
+        } catch {
+          worker = await createWorker('eng')
+        }
         workerRef.current = worker
       }
 

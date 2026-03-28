@@ -97,13 +97,14 @@ export default function AddCardPage() {
             ref={fileInputRef}
             type="file"
             accept="image/*"
-            capture="environment"
             className="hidden"
             onChange={handleFileCapture}
           />
-          <div
+          <button
+            type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="relative group cursor-pointer overflow-hidden rounded-2xl bg-surface-container-lowest shadow-[0_20px_40px_rgba(26,28,29,0.06)] h-48 flex flex-col items-center justify-center transition-all hover:bg-surface-container"
+            disabled={scanning}
+            className="relative w-full group cursor-pointer overflow-hidden rounded-2xl bg-surface-container-lowest shadow-[0_20px_40px_rgba(26,28,29,0.06)] h-48 flex flex-col items-center justify-center transition-all hover:bg-surface-container active:scale-[0.98] disabled:opacity-70"
           >
             {scanning && (
               <div className="absolute inset-0 bg-surface/80 flex flex-col items-center justify-center z-10">
@@ -113,8 +114,8 @@ export default function AddCardPage() {
             )}
             {previewUrl ? (
               <>
-                <img src={previewUrl} alt="Scanned card" className="absolute inset-0 w-full h-full object-cover opacity-30" />
-                <div className="relative z-[1] flex flex-col items-center">
+                <img src={previewUrl} alt="Scanned card" className="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none" />
+                <div className="relative z-[1] flex flex-col items-center pointer-events-none">
                   <span className="material-symbols-outlined text-primary text-3xl mb-2">refresh</span>
                   <span className="font-headline font-bold text-sm tracking-tight text-primary">
                     Tap to Re-scan
@@ -123,19 +124,19 @@ export default function AddCardPage() {
               </>
             ) : (
               <>
-                <div className="absolute inset-0 opacity-10 bg-gradient-to-tr from-primary to-transparent" />
-                <div className="w-16 h-16 rounded-full bg-surface-container-low flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
+                <div className="absolute inset-0 opacity-10 bg-gradient-to-tr from-primary to-transparent pointer-events-none" />
+                <div className="w-16 h-16 rounded-full bg-surface-container-low flex items-center justify-center mb-4 transition-transform group-hover:scale-110 pointer-events-none">
                   <span className="material-symbols-outlined text-primary text-3xl">photo_camera</span>
                 </div>
-                <span className="font-headline font-bold text-sm tracking-tight text-primary">
+                <span className="font-headline font-bold text-sm tracking-tight text-primary pointer-events-none">
                   Scan Card
                 </span>
-                <span className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant mt-1">
+                <span className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant mt-1 pointer-events-none">
                   Auto-fill from photo
                 </span>
               </>
             )}
-          </div>
+          </button>
           {scanError && (
             <p className="text-xs text-error text-center mt-2">{scanError}</p>
           )}
