@@ -1,10 +1,15 @@
 import { useState } from "react";
 import { runAgain } from "../api/client";
+import ModelSelector from "./ModelSelector";
+import { getModel } from "../models";
 
 export default function RunAgainModal({ doc, onClose, onCreated }) {
   const [prompt, setPrompt] = useState("");
+  const [model, setModel] = useState(doc.model || "claude-sonnet-4-6");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const originalModel = getModel(doc.model);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -12,7 +17,7 @@ export default function RunAgainModal({ doc, onClose, onCreated }) {
     setLoading(true);
     setError(null);
     try {
-      const newDoc = await runAgain(doc.id, prompt.trim());
+      const newDoc = await runAgain(doc.id, prompt.trim(), model);
       onCreated(newDoc);
       onClose();
     } catch (err) {
@@ -39,7 +44,7 @@ export default function RunAgainModal({ doc, onClose, onCreated }) {
         style={{
           background: "#fff",
           borderRadius: 12,
-          width: "min(540px, 95vw)",
+          width: "min(560px, 95vw)",
           padding: 24,
         }}
         onClick={(e) => e.stopPropagation()}
@@ -48,13 +53,41 @@ export default function RunAgainModal({ doc, onClose, onCreated }) {
         <p style={{ margin: "0 0 16px", color: "#6b7280", fontSize: 14, direction: "rtl" }}>
           {doc.program_name}
         </p>
+
+        {/* Current version indicator */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "8px 12px",
+            borderRadius: 8,
+            background: originalModel.bg,
+            border: `1px solid ${originalModel.border}`,
+            marginBottom: 16,
+            direction: "rtl",
+          }}
+        >
+          <span style={{ fontSize: 12, color: "#6b7280" }}>גרסה זו נוצרה עם</span>
+          <span
+            style={{
+              fontWeight: 700,
+              fontSize: 13,
+              color: originalModel.color,
+            }}
+          >
+            {originalModel.label}
+          </span>
+          <span style={{ fontSize: 11, color: "#9ca3af" }}>({originalModel.sublabel})</span>
+        </div>
+
         <form onSubmit={handleSubmit}>
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="מה צריך לתקן? (למשל: הוסף מידע על מלגות, שנה את הטון לפורמלי יותר...)"
             dir="rtl"
-            rows={5}
+            rows={4}
             style={{
               width: "100%",
               padding: "10px 12px",
@@ -64,8 +97,16 @@ export default function RunAgainModal({ doc, onClose, onCreated }) {
               resize: "vertical",
               boxSizing: "border-box",
               fontFamily: "inherit",
+              marginBottom: 14,
             }}
           />
+
+          <ModelSelector
+            value={model}
+            onChange={setModel}
+            label="הפעל מחדש עם מודל:"
+          />
+
           {error && (
             <p style={{ color: "#dc2626", fontSize: 13, margin: "8px 0 0" }}>{error}</p>
           )}

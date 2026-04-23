@@ -2,6 +2,29 @@ import { useState } from "react";
 import StatusBadge from "./StatusBadge";
 import { useSSE } from "../hooks/useSSE";
 import { downloadUrl, deleteDocument } from "../api/client";
+import { getModel } from "../models";
+
+function ModelBadge({ modelId }) {
+  const m = getModel(modelId);
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        padding: "1px 7px",
+        borderRadius: 6,
+        fontSize: 11,
+        fontWeight: 600,
+        color: m.color,
+        background: m.bg,
+        border: `1px solid ${m.border}`,
+        whiteSpace: "nowrap",
+      }}
+    >
+      {m.label}
+    </span>
+  );
+}
 
 export default function DocumentCard({ doc, onView, onRunAgain, onDeleted, isChild = false }) {
   const [status, setStatus] = useState(doc.status);
@@ -37,7 +60,7 @@ export default function DocumentCard({ doc, onView, onRunAgain, onDeleted, isChi
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, direction: "rtl" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, direction: "rtl", flexWrap: "wrap" }}>
             <span style={{ fontWeight: 600, fontSize: 15 }}>{doc.program_name}</span>
             {doc.label === "edited" && (
               <span
@@ -53,6 +76,7 @@ export default function DocumentCard({ doc, onView, onRunAgain, onDeleted, isChi
                 ערוך v{doc.version}
               </span>
             )}
+            <ModelBadge modelId={doc.model} />
             <StatusBadge status={status} />
           </div>
           {doc.faculty && (

@@ -47,6 +47,7 @@ class TemplateOut(BaseModel):
 class RunCreate(BaseModel):
     program_names: List[str]
     template_id: Optional[int] = None
+    model: str = "claude-sonnet-4-6"
 
 
 class RunOut(BaseModel):
@@ -85,6 +86,7 @@ class DocumentOut(BaseModel):
     is_deleted: bool
     label: Optional[str]
     correction_prompt: Optional[str]
+    model: Optional[str] = "claude-sonnet-4-6"
     version: int
     created_at: datetime
     children: List["DocumentOut"] = []
@@ -94,3 +96,4 @@ class DocumentOut(BaseModel):
 
 class RunAgainRequest(BaseModel):
     correction_prompt: str
+    model: str = "claude-sonnet-4-6"

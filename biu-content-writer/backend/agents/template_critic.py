@@ -1,7 +1,5 @@
 import json
-import anthropic
-
-client = anthropic.Anthropic()
+from agents.llm import call_llm, DEFAULT_MODEL
 
 SYSTEM_PROMPT = """אתה מבקר מבנה ותבניות תוכן.
 תפקידך לוודא שתיאורי תוכניות לימודים עומדים בדרישות התבנית שהוגדרה על-ידי המשתמש.
@@ -38,23 +36,18 @@ def _format_sections(sections: list[dict]) -> str:
 def check_template(
     generated_content: str,
     template_sections: list[dict],
+    model: str = DEFAULT_MODEL,
 ) -> dict:
-    """Critique generated content for template compliance. Returns {passed, issues, summary}."""
-    response = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=1024,
+    """Critique generated content for template compliance."""
+    text = call_llm(
+        model=model,
         system=SYSTEM_PROMPT,
-        messages=[
-            {
-                "role": "user",
-                "content": USER_PROMPT.format(
-                    generated_content=generated_content,
-                    template_sections_text=_format_sections(template_sections),
-                ),
-            }
-        ],
+        user=USER_PROMPT.format(
+            generated_content=generated_content,
+            template_sections_text=_format_sections(template_sections),
+        ),
+        max_tokens=1024,
     )
-    text = response.content[0].text.strip()
     try:
         if text.startswith("```"):
             text = text.split("```")[1]

@@ -1,6 +1,4 @@
-import anthropic
-
-client = anthropic.Anthropic()
+from agents.llm import call_llm, DEFAULT_MODEL
 
 SYSTEM_PROMPT = """אתה כותב תוכן מקצועי ומיומן המתמחה בכתיבה עברית אקדמית.
 תפקידך לכתוב תיאורים משכנעים ואינפורמטיביים של תוכניות לימודים באוניברסיטת בר-אילן,
@@ -22,8 +20,9 @@ def write_content(
     raw_scraped_content: str,
     template_sections: list[dict],
     correction_prompt: str | None = None,
+    model: str = DEFAULT_MODEL,
 ) -> str:
-    """Generate Hebrew program summary using Claude."""
+    """Generate Hebrew program summary using the selected LLM."""
     template_instructions = build_template_instructions(template_sections)
 
     correction_note = ""
@@ -50,10 +49,4 @@ def write_content(
 הסעיפים המסומנים כחובה חייבים להופיע. סעיפים אופציונליים יש לכלול רק אם יש מידע רלוונטי.
 אורך מומלץ: 400-700 מילים סה"כ."""
 
-    response = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=2048,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": user_message}],
-    )
-    return response.content[0].text.strip()
+    return call_llm(model=model, system=SYSTEM_PROMPT, user=user_message, max_tokens=2048)

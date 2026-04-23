@@ -28,7 +28,7 @@ export const getRuns = () => request("GET", "/api/runs");
 export const getDocuments = () => request("GET", "/api/documents");
 export const getDocument = (id) => request("GET", `/api/documents/${id}`);
 export const deleteDocument = (id) => request("DELETE", `/api/documents/${id}`);
-export const runAgain = (id, correction_prompt) =>
-  request("POST", `/api/documents/${id}/run-again`, { correction_prompt });
+export const runAgain = (id, correction_prompt, model = "claude-sonnet-4-6") =>
+  request("POST", `/api/documents/${id}/run-again`, { correction_prompt, model });
 export const downloadUrl = (id) => `${BASE}/api/documents/${id}/download`;
 export const streamUrl = (id) => `${BASE}/api/documents/${id}/stream`;

@@ -55,6 +55,7 @@ def run_again(doc_id: int, body: RunAgainRequest, db: Session = Depends(get_db))
         program_url=original.program_url,
         raw_scraped_content=original.raw_scraped_content,  # reuse scraped content
         correction_prompt=body.correction_prompt,
+        model=body.model,
         label="edited",
         version=(original.version or 1) + 1,
         status="pending",

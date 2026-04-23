@@ -1,4 +1,3 @@
-import asyncio
 import json
 from datetime import datetime
 from typing import Callable
@@ -11,6 +10,7 @@ from agents.web_scraper import scrape_sync
 from agents.content_writer import write_content
 from agents.accuracy_critic import check_accuracy
 from agents.template_critic import check_template
+from agents.llm import DEFAULT_MODEL
 from services.docx_generator import generate_docx
 
 MAX_CRITIQUE_RETRIES = 3
@@ -31,12 +31,13 @@ def process_document(
 ) -> Document:
     """Run the full pipeline for a single document. Mutates doc in place."""
     sections = template.get_sections()
+    model = doc.model or DEFAULT_MODEL
 
     # ── Step 1: Faculty Finder ────────────────────────────────────────────────
     if not doc.raw_scraped_content:
         _update_status(db, doc, "scraping", notify)
         try:
-            info = find_faculty(doc.program_name)
+            info = find_faculty(doc.program_name, model=model)
             doc.faculty = info.get("faculty")
             doc.department = info.get("department")
             doc.program_url = info.get("program_url")
@@ -62,13 +63,13 @@ def process_document(
     _update_status(db, doc, "writing", notify)
 
     for attempt in range(MAX_CRITIQUE_RETRIES):
-        # Write content
         try:
             content = write_content(
                 program_name=doc.program_name,
                 raw_scraped_content=doc.raw_scraped_content or "",
                 template_sections=sections,
                 correction_prompt=doc.correction_prompt,
+                model=model,
             )
             doc.generated_content = content
             db.commit()
@@ -83,12 +84,12 @@ def process_document(
             program_name=doc.program_name,
             generated_content=content,
             raw_scraped_content=doc.raw_scraped_content or "",
+            model=model,
         )
         doc.accuracy_critique = json.dumps(accuracy, ensure_ascii=False)
         db.commit()
 
         if not accuracy.get("passed"):
-            # Inject issues as a correction prompt addendum for next iteration
             issues_text = "\n".join(accuracy.get("issues", []))
             doc.correction_prompt = (
                 (doc.correction_prompt or "")
@@ -103,6 +104,7 @@ def process_document(
         tmpl = check_template(
             generated_content=content,
             template_sections=sections,
+            model=model,
         )
         doc.template_critique = json.dumps(tmpl, ensure_ascii=False)
         db.commit()
@@ -157,8 +159,6 @@ def run_pipeline(
             continue
         process_document(db, doc, template, notify)
 
-    # Mark run complete/failed
-    statuses = [d.status for d in run.documents if not d.is_deleted]
-    run.status = "completed" if all(s == "approved" for s in statuses) else "completed"
+    run.status = "completed"
     run.completed_at = datetime.utcnow()
     db.commit()

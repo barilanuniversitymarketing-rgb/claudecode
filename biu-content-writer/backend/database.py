@@ -74,6 +74,7 @@ class Document(Base):
     is_deleted = Column(Boolean, default=False)
     label = Column(String, nullable=True)  # NULL=original, 'edited'=correction
     correction_prompt = Column(Text, nullable=True)
+    model = Column(String, default="claude-sonnet-4-6", nullable=True)
     version = Column(Integer, default=1)
     created_at = Column(DateTime, default=datetime.utcnow)
 

@@ -1,7 +1,5 @@
 import json
-import anthropic
-
-client = anthropic.Anthropic()
+from agents.llm import call_llm, DEFAULT_MODEL
 
 SYSTEM_PROMPT = """אתה עוזר מומחה שמכיר היטב את אוניברסיטת בר-אילן.
 תפקידך הוא לזהות לאיזה פקולטה ומחלקה שייכת תוכנית לימודים נתונה, ולמצוא את כתובת ה-URL של עמוד התוכנית באתר האוניברסיטה.
@@ -21,28 +19,19 @@ USER_PROMPT_TEMPLATE = """תוכנית הלימודים: "{program_name}"
 }}"""
 
 
-def find_faculty(program_name: str) -> dict:
-    """Use Claude to identify faculty, department, and URL for a BIU program."""
-    response = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=512,
+def find_faculty(program_name: str, model: str = DEFAULT_MODEL) -> dict:
+    """Use an LLM to identify faculty, department, and URL for a BIU program."""
+    text = call_llm(
+        model=model,
         system=SYSTEM_PROMPT,
-        messages=[
-            {"role": "user", "content": USER_PROMPT_TEMPLATE.format(program_name=program_name)}
-        ],
+        user=USER_PROMPT_TEMPLATE.format(program_name=program_name),
+        max_tokens=512,
     )
-    text = response.content[0].text.strip()
     try:
-        # Strip markdown code fences if present
         if text.startswith("```"):
             text = text.split("```")[1]
             if text.startswith("json"):
                 text = text[4:]
         return json.loads(text)
     except json.JSONDecodeError:
-        return {
-            "faculty": None,
-            "department": None,
-            "program_url": None,
-            "confidence": "low",
-        }
+        return {"faculty": None, "department": None, "program_url": None, "confidence": "low"}

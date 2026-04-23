@@ -53,7 +53,7 @@ def create_run(body: RunCreate, background_tasks: BackgroundTasks, db: Session =
     db.flush()
 
     for name in body.program_names:
-        doc = Document(run_id=run.id, program_name=name.strip(), status="pending")
+        doc = Document(run_id=run.id, program_name=name.strip(), status="pending", model=body.model)
         db.add(doc)
 
     db.commit()

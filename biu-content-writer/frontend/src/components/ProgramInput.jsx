@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { getTemplates, createRun } from "../api/client";
+import ModelSelector from "./ModelSelector";
+import { DEFAULT_MODEL } from "../models";
 
 export default function ProgramInput({ onRunStarted }) {
   const [names, setNames] = useState("");
   const [templates, setTemplates] = useState([]);
   const [templateId, setTemplateId] = useState(null);
+  const [model, setModel] = useState(DEFAULT_MODEL);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -26,7 +29,7 @@ export default function ProgramInput({ onRunStarted }) {
     setLoading(true);
     setError(null);
     try {
-      await createRun({ program_names: programNames, template_id: templateId || null });
+      await createRun({ program_names: programNames, template_id: templateId || null, model });
       setNames("");
       onRunStarted();
     } catch (err) {
@@ -104,6 +107,10 @@ export default function ProgramInput({ onRunStarted }) {
             </option>
           ))}
         </select>
+
+        <div style={{ marginTop: 14 }}>
+          <ModelSelector value={model} onChange={setModel} />
+        </div>
 
         {error && <p style={{ color: "#dc2626", fontSize: 13, margin: "8px 0 0" }}>{error}</p>}
 
