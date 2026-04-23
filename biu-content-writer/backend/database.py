@@ -1,11 +1,12 @@
 import json
+import os
 from datetime import datetime
 from sqlalchemy import (
     create_engine, Column, Integer, String, Boolean, DateTime, Text, ForeignKey
 )
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
-DATABASE_URL = "sqlite:///./biu_content.db"
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./biu_content.db")
 
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
