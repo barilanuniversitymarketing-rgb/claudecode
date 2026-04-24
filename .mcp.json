@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "youtube-analytics-mcp": {
+      "type": "stdio",
+      "command": "/home/user/Projects/youtube-analytics-mcp/start.sh",
+      "args": []
+    }
+  }
+}
